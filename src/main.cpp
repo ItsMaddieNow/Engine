@@ -1,5 +1,6 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <zstd.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -14,6 +15,8 @@
 #include <fstream>
 #include <glm/glm.hpp>
 #include <array>
+
+#include "libs/smolv/smolv.h"
 
 #include "Version.h"
 
@@ -1029,6 +1032,21 @@ private:
         }
 
         return true;
+    }
+    
+    static std::vector<char> readShader(const std::string& filename) {
+        std::vector<char> fileBytes = readFile(filename);
+        #ifndef DEBUG
+        long smolvSize = ZSTD_getFrameContentSize(fileBytes.data(), fileBytes.size());
+        std::vector<char> smolvShader(smolvSize);
+        ZSTD_decompress(smolvShader.data(), smolvSize, fileBytes.data(), fileBytes.size());
+        long spirvSize = smolv::GetDecodedBufferSize(smolvShader.data(), smolvShader.size());
+        std::vector<char> spirvShader(spirvSize);
+        smolv::Decode(smolvShader.data(), smolvSize, spirvShader.data(), spirvSize, smolv::DecodeFlags::kDecodeFlagNone);
+        return spirvShader;
+        #else
+        return fileBytes;
+        #endif
     }
 
     static std::vector<char> readFile(const std::string& filename) {

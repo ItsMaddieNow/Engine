@@ -8,28 +8,33 @@ conf_data.set('engine_version_patch', 0)
 configure_file(input : 'src/Version.h.in',
                output : 'Version.h',
                configuration : conf_data)
+
 vulkan = dependency('vulkan')
 glm = dependency('glm')
 glfw = dependency('glfw3')
+zstd = dependency('libzstd')
+threads = dependency('threads')
+
+smolv = static_library('smolv', ['libs/smolv/smolv.h', 'libs/smolv/smolv.cpp'])
 
 executable('engine', 'src/main.cpp',
-           dependencies : [vulkan, glfw, glm],
+           dependencies : [vulkan, glfw, glm, zstd, threads],
+           link_with : [smolv],
            install : true,
            install_dir : 'bin'
            )
 
-
 slang_shaders = ['src/shaders/triangle.slang']
 output_shaders = []
 
-slangc = find_program('slangc')
-smolv = find_program('smolv')
-zstd = find_program('zstd')
+slangc_bin = find_program('slangc')
+smolv_bin = find_program('smolv')
+zstd_bin = find_program('zstd')
 
 foreach s : slang_shaders
     spirv_shader = custom_target(
         'spirv shader @0@'.format(s.split('/')[-1]),
-        command: [slangc, '-emit-spirv-directly', '-g2', '-fvk-use-entrypoint-name', '@INPUT@', '-o', '@OUTPUT@', '-target', 'spirv'],
+        command: [slangc_bin, '-emit-spirv-directly', '-g2', '-fvk-use-entrypoint-name', '@INPUT@', '-o', '@OUTPUT@', '-target', 'spirv'],
         input : s, 
         output : '@BASENAME@.spv',
         install : get_option('debug')==false,
@@ -38,14 +43,14 @@ foreach s : slang_shaders
     if get_option('debug')
         smolv_shader = custom_target(
             'smolv shader @0@'.format(s.split('/')[-1]),
-            command : [smolv, '-o', '@OUTPUT@', '--', '@INPUT@'],
+            command : [smolv_bin, '-o', '@OUTPUT@', '--', '@INPUT@'],
             input : spirv_shader, 
             output : '@BASENAME@.smlv',
             depends : [spirv_shader]
         )
         zstd_shader = custom_target(
             'zstd shader @0@'.format(s.split('/')[-1]),
-            command : [zstd, '@INPUT@', '-o', '@OUTPUT@'],
+            command : [zstd_bin, '@INPUT@', '-o', '@OUTPUT@'],
             input : smolv_shader, 
             output : '@BASENAME@.smlv.zstd',
             depends : [smolv_shader],
