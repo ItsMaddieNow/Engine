@@ -31,16 +31,18 @@ slangc_bin = find_program('slangc')
 smolv_bin = find_program('smolv')
 zstd_bin = find_program('zstd')
 
+message(get_option('debug'))
+
 foreach s : slang_shaders
     spirv_shader = custom_target(
         'spirv shader @0@'.format(s.split('/')[-1]),
         command: [slangc_bin, '-emit-spirv-directly', '-g2', '-fvk-use-entrypoint-name', '@INPUT@', '-o', '@OUTPUT@', '-target', 'spirv'],
         input : s, 
         output : '@BASENAME@.spv',
-        install : get_option('debug')==false,
+        install : get_option('debug'),
         install_dir : 'bin/shaders'
     )
-    if get_option('debug')
+    if get_option('debug')==false
         smolv_shader = custom_target(
             'smolv shader @0@'.format(s.split('/')[-1]),
             command : [smolv_bin, '-o', '@OUTPUT@', '--', '@INPUT@'],
