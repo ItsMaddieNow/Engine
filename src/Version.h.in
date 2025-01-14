@@ -1,4 +1,8 @@
-#define ENGINE_VERSION_MAJOR @Engine_VERSION_MAJOR@
-#define ENGINE_VERSION_MINOR @Engine_VERSION_MINOR@
-#define GAME_VERSION_MAJOR @Engine_VERSION_MAJOR@
-#define GAME_VERSION_MINOR @Engine_VERSION_MINOR@
+#define ENGINE_VERSION_STR "@engine_version_str@"
+#define ENGINE_VERSION_MAJOR @engine_version_major@
+#define ENGINE_VERSION_MINOR @engine_version_minor@
+#define ENGINE_VERSION_PATCH @engine_version_patch@
+#define GAME_VERSION_STR "@engine_version_str@"
+#define GAME_VERSION_MAJOR @engine_version_major@
+#define GAME_VERSION_MINOR @engine_version_minor@
+#define GAME_VERSION_PATCH @engine_version_patch@
