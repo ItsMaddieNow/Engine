@@ -1034,6 +1034,20 @@ private:
         return true;
     }
     
+    static std::vector<char> decompressZstd(std::vector<char> compressed){
+        long outSize =  ZSTD_getFrameContentSize(compressed.data(), compressed.size());
+        std::vector<char> decompressed(outSize);
+        ZSTD_decompress(decompressed.data(), outSize, compressed.data(), compressed.size());
+        return decompressed;
+    }
+
+    static std::vector<char> decodeSmolv(std::vector<char> smolv){
+        long spirvSize = smolv::GetDecodedBufferSize(smolv.data(), smolv.size());
+        std::vector<char> spirvShader(spirvSize);
+        smolv::Decode(smolv.data(), smolv.size(), spirvShader.data(), spirvSize, smolv::DecodeFlags::kDecodeFlagNone);
+        return spirvShader;
+    }
+
     static std::vector<char> readShader(const std::string& filename) {
         std::vector<char> fileBytes = readFile(filename);
         #ifndef DEBUG
