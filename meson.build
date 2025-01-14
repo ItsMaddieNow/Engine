@@ -50,7 +50,7 @@ foreach s : slang_shaders
         )
         zstd_shader = custom_target(
             'zstd shader @0@'.format(s.split('/')[-1]),
-            command : [zstd_bin, '@INPUT@', '-o', '@OUTPUT@'],
+            command : [zstd_bin, '--force', '@INPUT@', '-o', '@OUTPUT@'],
             input : smolv_shader, 
             output : '@BASENAME@.smlv.zstd',
             depends : [smolv_shader],
