@@ -38,7 +38,7 @@ foreach s : slang_shaders
         'spirv shader @0@'.format(s.split('/')[-1]),
         command: [slangc_bin, '-emit-spirv-directly', '-g2', '-fvk-use-entrypoint-name', '@INPUT@', '-o', '@OUTPUT@', '-target', 'spirv'],
         input : s, 
-        output : '@BASENAME@.spv',
+        output : 'shaders/@BASENAME@.spv',
         install : get_option('debug'),
         install_dir : 'bin/shaders'
     )
@@ -47,14 +47,14 @@ foreach s : slang_shaders
             'smolv shader @0@'.format(s.split('/')[-1]),
             command : [smolv_bin, '-o', '@OUTPUT@', '--', '@INPUT@'],
             input : spirv_shader, 
-            output : '@BASENAME@.smlv',
+            output : 'shaders/@BASENAME@.smlv',
             depends : [spirv_shader]
         )
         zstd_shader = custom_target(
             'zstd shader @0@'.format(s.split('/')[-1]),
             command : [zstd_bin, '--force', '@INPUT@', '-o', '@OUTPUT@'],
             input : smolv_shader, 
-            output : '@BASENAME@.smlv.zstd',
+            output : 'shaders/@BASENAME@.smlv.zstd',
             depends : [smolv_shader],
             install : true,
             install_dir : 'bin/shaders'

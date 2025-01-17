@@ -20,6 +20,14 @@
 
 #include "Version.h"
 
+#ifndef DEBUG
+#define SHADER_EXTENSION ".smlv.zstd"
+#else
+#define SHADER_EXTENSION ".spv"
+#endif
+
+#define SHADER_PATH "shaders/"
+
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
@@ -510,7 +518,7 @@ private:
     }
 
     void createGraphicsPipeline() {
-        auto sharedShaderCode = readFile("shaders/triangle.spv");
+        auto sharedShaderCode = readShader(SHADER_PATH "triangle" SHADER_EXTENSION);
         VkShaderModule sharedShaderModule = createShaderModule(sharedShaderCode);
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
