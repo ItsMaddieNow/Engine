@@ -15,6 +15,7 @@
 #include <fstream>
 #include <glm/glm.hpp>
 #include <array>
+#include <filesystem>
 
 #include "libs/smolv/smolv.h"
 
@@ -26,10 +27,17 @@
 #define SHADER_EXTENSION ".spv"
 #endif
 
-#define SHADER_PATH "shaders/"
+#ifndef SHADER_DIR
+#define SHADER_DIR "shaders"
+#endif
+
+typedef std::filesystem::path path;
+
+const path SHADER_PATH(SHADER_DIR);
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
+
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -518,9 +526,9 @@ private:
     }
 
     void createGraphicsPipeline() {
-        auto sharedShaderCode = readShader(SHADER_PATH "triangle" SHADER_EXTENSION);
+        auto sharedShaderCode = readShader(SHADER_PATH/path("triangle" SHADER_EXTENSION));
         VkShaderModule sharedShaderModule = createShaderModule(sharedShaderCode);
-
+        
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -1075,7 +1083,9 @@ private:
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
         if (!file.is_open()) {
-            throw std::runtime_error("failed to open file!");
+            char * errText;
+            asprintf(&errText, "failed to open file: %s!", filename.c_str());
+            throw std::runtime_error(errText);
         }
 
         size_t fileSize = (size_t) file.tellg();

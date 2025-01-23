@@ -1,4 +1,5 @@
-project('engine', 'cpp')
+project('engine', 'cpp',
+    version: '0.1.0')
 
 conf_data = configuration_data()
 conf_data.set('engine_version_str', '0.1.0')
@@ -8,6 +9,11 @@ conf_data.set('engine_version_patch', 0)
 configure_file(input : 'src/Version.h.in',
                output : 'Version.h',
                configuration : conf_data)
+
+message(get_option('prefix'))
+shader_dir = get_option('prefix') / get_option('datadir') / meson.project_name() / 'shaders'
+bin_dir = get_option('prefix') / get_option('bindir')
+add_global_arguments('-DSHADER_DIR="@0@"'.format(shader_dir), language: 'cpp')
 
 vulkan = dependency('vulkan')
 glm = dependency('glm')
@@ -21,7 +27,7 @@ executable('engine', 'src/main.cpp',
            dependencies : [vulkan, glfw, glm, zstd, threads],
            link_with : [smolv],
            install : true,
-           install_dir : 'bin'
+           install_dir : bin_dir
            )
 
 slang_shaders = ['src/shaders/triangle.slang']
@@ -32,32 +38,33 @@ smolv_bin = find_program('smolv')
 zstd_bin = find_program('zstd')
 
 message(get_option('debug'))
-
+message(bin_dir)
+message(shader_dir)
 foreach s : slang_shaders
     spirv_shader = custom_target(
         'spirv shader @0@'.format(s.split('/')[-1]),
-        command: [slangc_bin, '-emit-spirv-directly', '-g2', '-fvk-use-entrypoint-name', '@INPUT@', '-o', '@OUTPUT@', '-target', 'spirv'],
+        command: [slangc_bin, '-emit-spirv-directly', get_option('debug')?'-g3':'-g0', '-fvk-use-entrypoint-name', '@INPUT@', '-o', '@OUTPUT@', '-target', 'spirv'],
         input : s, 
-        output : 'shaders/@BASENAME@.spv',
-        install : get_option('debug'),
-        install_dir : 'bin/shaders'
+        output : '@BASENAME@.spv',
+        install: get_option('debug'),
+        install_dir: shader_dir
     )
     if get_option('debug')==false
         smolv_shader = custom_target(
             'smolv shader @0@'.format(s.split('/')[-1]),
             command : [smolv_bin, '-o', '@OUTPUT@', '--', '@INPUT@'],
             input : spirv_shader, 
-            output : 'shaders/@BASENAME@.smlv',
+            output : '@BASENAME@.smlv',
             depends : [spirv_shader]
         )
         zstd_shader = custom_target(
             'zstd shader @0@'.format(s.split('/')[-1]),
             command : [zstd_bin, '--force', '@INPUT@', '-o', '@OUTPUT@'],
             input : smolv_shader, 
-            output : 'shaders/@BASENAME@.smlv.zstd',
+            output : '@BASENAME@.smlv.zstd',
             depends : [smolv_shader],
             install : true,
-            install_dir : 'bin/shaders'
+            install_dir: shader_dir
         )
         output_shaders += zstd_shader
     else 
