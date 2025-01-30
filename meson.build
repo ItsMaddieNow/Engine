@@ -14,6 +14,9 @@ message(get_option('prefix'))
 shader_dir = get_option('prefix') / get_option('datadir') / meson.project_name() / 'shaders'
 bin_dir = get_option('prefix') / get_option('bindir')
 add_global_arguments('-DSHADER_DIR="@0@"'.format(shader_dir), language: 'cpp')
+if get_option('debug')
+    add_global_arguments('-DDEBUG=1', language: 'cpp')
+endif
 
 vulkan = dependency('vulkan')
 glm = dependency('glm')
